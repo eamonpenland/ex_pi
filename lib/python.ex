@@ -5,7 +5,6 @@ defmodule ExPi.Python do
     GenServer.start_link(__MODULE__, nil, [])
   end
 
-
   def init(_) do
     path = [
       :code.priv_dir(:ex_pi),
