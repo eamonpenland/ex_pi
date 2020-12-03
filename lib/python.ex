@@ -1,5 +1,12 @@
 defmodule ExPi.Python do
-  def call_python do
+  use GenServer
+
+  def start_link(_) do
+    GenServer.start_link(__MODULE__, nil, [])
+  end
+
+
+  def init(_) do
     path = [
       :code.priv_dir(:ex_pi),
       "python"
@@ -9,7 +16,20 @@ defmodule ExPi.Python do
       {:python, 'python3'},
       {:python_path, to_charlist(path)},
     ])
+    IO.puts("*** started python -- pid: #{inspect(python_pid)}")
+    state = [pid: python_pid]
+    {:ok, state}
+  end
 
-    :python.call(python_pid, :main, :add, [])
+  def handle_call({:add, num1, num2}, _from, state) do
+    python_pid = state[:pid]
+    result = :python.call(python_pid, :main, :add, [num1, num2])
+    {:reply, {:result, result}, state}
+  end
+
+  def terminate(_reason, state) do
+    python_pid = state[:pid]
+    :python.stop(python_pid)
+    IO.puts("*** terminated")
   end
 end
