@@ -25,3 +25,5 @@ ex_pi-*.tar
 
 # Temporary files for e.g. tests
 /tmp
+
+.vscode
