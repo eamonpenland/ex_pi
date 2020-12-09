@@ -1,5 +1,4 @@
 defmodule ExPi do
-
   @timeout 60000
 
   @moduledoc """
@@ -37,6 +36,31 @@ defmodule ExPi do
     end
   end
 
+  def get_and_process_candles(symbols) when is_list(symbols) do
+    Enum.map(symbols, &get_and_process_candles/1)
+    |> Enum.map(&process_candles/1)
+    |> Enum.map(&await_and_inspect/1)
+    |> IO.inspect()
+  end
+
+  def get_and_process_candles(symbol) do
+    with {:ok, data} <- YahooClient.get_history(symbol) do
+      data["volume"]
+    end
+  end
+
+  defp process_candles(volume) do
+    Task.async(fn ->
+      :poolboy.transaction(
+        :worker,
+        fn pid ->
+          GenServer.call(pid, {:avg, volume})
+        end,
+        @timeout
+      )
+    end)
+  end
+
   defp async_call_py(ele) do
     IO.inspect(ele, label: "Calling")
 
@@ -50,5 +74,6 @@ defmodule ExPi do
       )
     end)
   end
+
   defp await_and_inspect(task), do: task |> Task.await(@timeout) |> IO.inspect(label: "Finished")
 end

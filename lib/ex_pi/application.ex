@@ -19,8 +19,6 @@ defmodule ExPi.Application do
     Supervisor.start_link(children, opts)
   end
 
-
-
   defp poolboy_config do
     [
       {:name, {:local, :worker}},
